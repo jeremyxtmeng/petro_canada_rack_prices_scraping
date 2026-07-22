@@ -5,8 +5,17 @@ from datetime import datetime
 
 def scrape_rack_prices():
     co = ChromiumOptions()
-    co.no_imgs(False)  # Keep images enabled for Cloudflare Turnstile
     
+    # Required for Linux / CI runners (GitHub Actions)
+    co.set_argument('--no-sandbox')
+    co.set_argument('--headless=new')
+    co.set_argument('--disable-gpu')
+    co.set_argument('--disable-dev-shm-usage')
+    
+    # Keep images enabled for Cloudflare Turnstile verification
+    co.no_imgs(False)
+    
+    print("Launching Chromium instance...")
     page = ChromiumPage(co)
     
     try:
@@ -14,17 +23,12 @@ def scrape_rack_prices():
         page.get("https://www.petro-canada.ca/en/business/rack-prices")
         
         print("Waiting for table to load...")
-        # Wait up to 20s for the table container to appear
-        page.wait.eles_loaded("css:table.rack-pricing__table", timeout=20)
+        page.wait.eles_loaded("css:table.rack-pricing__table", timeout=25)
         
-        # Locate table element
         table_ele = page.ele("css:table.rack-pricing__table") or page.ele("tag:table")
         
         if table_ele:
-            # Get raw HTML string
             html_table = table_ele.html
-            
-            # Wrap the HTML string with io.StringIO so Pandas parses it as HTML, not a file path
             dfs = pd.read_html(io.StringIO(html_table))
             
             if dfs:
