@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Scraper
         run: |
-          xvfb-run --auto-servernum python scrape_drission.py
+          xvfb-run --auto-servernum python scrape_petro_canada.py
 
       - name: Commit Scraped Data
         run: |
