@@ -1,4 +1,5 @@
 import io
+import shutil
 from DrissionPage import ChromiumPage, ChromiumOptions
 import pandas as pd
 from datetime import datetime
@@ -6,13 +7,20 @@ from datetime import datetime
 def scrape_rack_prices():
     co = ChromiumOptions()
     
-    # Required for Linux / CI runners (GitHub Actions)
+    # 1. Use DrissionPage's built-in headless setting
+    co.set_headless(True)
+    
+    # 2. Linux sandbox & memory arguments for CI environments
     co.set_argument('--no-sandbox')
-    co.set_argument('--headless=new')
     co.set_argument('--disable-gpu')
     co.set_argument('--disable-dev-shm-usage')
     
-    # Keep images enabled for Cloudflare Turnstile verification
+    # 3. Explicitly pass Chrome binary path if available
+    chrome_path = shutil.which("google-chrome") or shutil.which("google-chrome-stable")
+    if chrome_path:
+        co.set_browser_path(chrome_path)
+    
+    # Keep images enabled for anti-bot checks
     co.no_imgs(False)
     
     print("Launching Chromium instance...")
